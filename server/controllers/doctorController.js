@@ -18,7 +18,8 @@ const generateDoctorId = async () => {
 
 const getDoctors = async (req, res) => {
   try {
-    const filter = { isAvailable: true };
+    const filter = {};
+    if (req.query.all !== 'true') filter.isAvailable = true;
     if (req.query.department) filter.department = req.query.department;
 
     let query = Doctor.find(filter)
@@ -120,11 +121,11 @@ const createDoctor = async (req, res) => {
     const {
       name, email, password, phone, department, specialization,
       qualification, experience, licenseNumber, bio,
-      availableSlots, consultationFee,
+      availableSlots, consultationFee, avatar,
     } = req.body;
 
     const user = await User.create({
-      name, email, password: password || 'Doctor@123', role: 'doctor', phone,
+      name, email, password: password || 'Doctor@123', role: 'doctor', phone, avatar: avatar || '',
     });
 
     const doctorId = await generateDoctorId();
@@ -154,18 +155,68 @@ const createDoctor = async (req, res) => {
 
 const updateDoctor = async (req, res) => {
   try {
-    const doctor = await Doctor.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    })
-      .populate('user', 'name email phone')
-      .populate('department', 'name');
-
+    const doctor = await Doctor.findById(req.params.id);
     if (!doctor) {
       return res.status(404).json({ success: false, message: 'Doctor not found' });
     }
 
-    res.status(200).json({ success: true, data: doctor });
+    const {
+      name, email, phone, password, avatar,
+      department, specialization, qualification, experience,
+      licenseNumber, bio, consultationFee, isAvailable,
+    } = req.body;
+
+    const userUpdate = {};
+    if (name !== undefined) userUpdate.name = name;
+    if (email !== undefined) userUpdate.email = email;
+    if (phone !== undefined) userUpdate.phone = phone;
+    if (avatar !== undefined) userUpdate.avatar = avatar;
+
+    if (Object.keys(userUpdate).length > 0) {
+      await User.findByIdAndUpdate(doctor.user, userUpdate, { runValidators: true });
+    }
+
+    if (password && req.user.role === 'admin') {
+      const user = await User.findById(doctor.user).select('+password');
+      user.password = password;
+      await user.save();
+    }
+
+    const doctorUpdate = {};
+    if (department !== undefined) doctorUpdate.department = department;
+    if (specialization !== undefined) doctorUpdate.specialization = specialization;
+    if (qualification !== undefined) doctorUpdate.qualification = qualification;
+    if (experience !== undefined) doctorUpdate.experience = experience;
+    if (licenseNumber !== undefined) doctorUpdate.licenseNumber = licenseNumber;
+    if (bio !== undefined) doctorUpdate.bio = bio;
+    if (consultationFee !== undefined) doctorUpdate.consultationFee = consultationFee;
+    if (isAvailable !== undefined) doctorUpdate.isAvailable = isAvailable;
+
+    const updated = await Doctor.findByIdAndUpdate(req.params.id, doctorUpdate, {
+      new: true,
+      runValidators: true,
+    })
+      .populate('user', 'name email phone avatar')
+      .populate('department', 'name');
+
+    res.status(200).json({ success: true, data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const deactivateDoctor = async (req, res) => {
+  try {
+    const doctor = await Doctor.findById(req.params.id);
+    if (!doctor) {
+      return res.status(404).json({ success: false, message: 'Doctor not found' });
+    }
+
+    doctor.isAvailable = false;
+    await doctor.save();
+    await User.findByIdAndUpdate(doctor.user, { isActive: false });
+
+    res.status(200).json({ success: true, message: 'Doctor deactivated' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -208,5 +259,5 @@ const rateDoctor = async (req, res) => {
 
 module.exports = {
   getDoctors, getDoctor, getAvailableSlots, createDoctor,
-  updateDoctor, updateAvailability, rateDoctor,
+  updateDoctor, updateAvailability, rateDoctor, deactivateDoctor,
 };

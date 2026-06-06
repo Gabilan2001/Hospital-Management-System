@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import api from '../../api/axiosInstance';
 import { useAuthUser } from '../../hooks/useAuth';
 import { resolvePatientIdFromUser } from '../../utils/patientHelpers';
+import AvatarUpload from '../../components/common/AvatarUpload';
 import Loader from '../../components/common/Loader';
 import QRCodeDisplay from '../../components/common/QRCodeDisplay';
 import { formatDate } from '../../utils/helpers';
@@ -11,18 +12,20 @@ import { formatDate } from '../../utils/helpers';
 const PatientProfile = () => {
   const user = useAuthUser();
   const [patient, setPatient] = useState(null);
+  const [patientId, setPatientId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const patientId = await resolvePatientIdFromUser(api, user);
-        if (!patientId) {
+        const pid = await resolvePatientIdFromUser(api, user);
+        if (!pid) {
           toast.error('Patient profile not found');
           return;
         }
+        setPatientId(pid);
 
-        const { data: patientData } = await api.get(`/patients/${patientId}`);
+        const { data: patientData } = await api.get(`/patients/${pid}`);
         setPatient(patientData.data);
       } catch (err) {
         toast.error(err.response?.data?.message || 'Failed to load profile');
@@ -45,26 +48,34 @@ const PatientProfile = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">My Profile</h1>
+      <div className="page-header">
+        <h1 className="page-title">My Profile</h1>
+        <p className="page-subtitle">Your personal information and hospital QR code</p>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="card flex flex-col items-center">
-          <QRCodeDisplay qrCode={patient.qrCode} patientId={patient.patientId} size={200} />
-          <p className="text-sm text-gray-500 mt-4 text-center">
+          <AvatarUpload
+            src={patient.photo || user?.avatar}
+            name={`${patient.firstName} ${patient.lastName}`}
+            size="2xl"
+            patientId={patientId}
+            onUploaded={(url) => setPatient({ ...patient, photo: url })}
+            syncAuth
+          />
+          <p className="text-sm font-semibold mt-4">{patient.firstName} {patient.lastName}</p>
+          <p className="text-xs text-gray-400 font-mono">{patient.patientId}</p>
+          <div className="mt-6 w-full pt-6 border-t">
+            <QRCodeDisplay qrCode={patient.qrCode} patientId={patient.patientId} size={160} />
+          </div>
+          <p className="text-xs text-gray-500 mt-4 text-center">
             Show this QR code at reception for quick check-in
           </p>
         </div>
 
         <div className="lg:col-span-2 card">
-          <div className="flex items-center gap-4 mb-6 pb-6 border-b">
-            <div className="w-16 h-16 rounded-full bg-sky-100 flex items-center justify-center">
-              <User size={32} className="text-sky-700" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">{patient.firstName} {patient.lastName}</h2>
-              <p className="text-sm text-gray-500 font-mono">{patient.patientId}</p>
-              {user && <p className="text-sm text-gray-500">{user.email}</p>}
-            </div>
+          <div className="mb-6 pb-6 border-b">
+            <h2 className="text-lg font-bold">Personal Details</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

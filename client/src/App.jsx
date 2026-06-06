@@ -63,7 +63,7 @@ import PaymentHistory from './pages/billing/PaymentHistory';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ManageDoctors from './pages/admin/ManageDoctors';
-import AddDoctor from './pages/admin/AddDoctor';
+import { AddDoctor, EditDoctor } from './pages/admin/DoctorForm';
 import ManageStaff from './pages/admin/ManageStaff';
 import ManagePatients from './pages/admin/ManagePatients';
 import ManageDepartments from './pages/admin/ManageDepartments';
@@ -71,9 +71,12 @@ import ManageWards from './pages/admin/ManageWards';
 import ManageBeds from './pages/admin/ManageBeds';
 import AdminReports from './pages/admin/AdminReports';
 import AdminSettings from './pages/admin/AdminSettings';
+import AuthBootstrap from './components/common/AuthBootstrap';
 
 const App = () => (
-  <Routes>
+  <>
+    <AuthBootstrap />
+    <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/queue/display" element={<QueueDisplay />} />
 
@@ -158,6 +161,7 @@ const App = () => (
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/doctors" element={<ManageDoctors />} />
             <Route path="/admin/doctors/add" element={<AddDoctor />} />
+            <Route path="/admin/doctors/edit/:id" element={<EditDoctor />} />
             <Route path="/admin/staff" element={<ManageStaff />} />
             <Route path="/admin/patients" element={<ManagePatients />} />
             <Route path="/admin/departments" element={<ManageDepartments />} />
@@ -171,7 +175,8 @@ const App = () => (
 
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<NotFound />} />
-  </Routes>
+    </Routes>
+  </>
 );
 
 export default App;

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, User } from 'lucide-react';
+import { Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/axiosInstance';
 import Loader from '../../components/common/Loader';
 import Badge from '../../components/common/Badge';
+import Avatar from '../../components/common/Avatar';
 import { formatDate } from '../../utils/helpers';
 
 const DoctorPatients = () => {
@@ -67,9 +68,7 @@ const DoctorPatients = () => {
           {patients.map((patient) => (
             <div key={patient._id} className="card hover:shadow-md transition-shadow">
               <div className="flex items-start gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <User size={20} className="text-blue-700" />
-                </div>
+                <Avatar src={patient.photo || patient.user?.avatar} name={`${patient.firstName} ${patient.lastName}`} size="md" />
                 <div className="flex-1">
                   <p className="font-semibold">
                     {patient.firstName} {patient.lastName}

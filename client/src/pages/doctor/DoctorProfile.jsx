@@ -3,6 +3,7 @@ import { Star, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/axiosInstance';
 import { useAuth } from '../../hooks/useAuth';
+import AvatarUpload from '../../components/common/AvatarUpload';
 import Loader from '../../components/common/Loader';
 import { formatCurrency } from '../../utils/helpers';
 
@@ -73,22 +74,31 @@ const DoctorProfile = () => {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold mb-6">Doctor Profile</h1>
+      <div className="page-header">
+        <h1 className="page-title">Doctor Profile</h1>
+        <p className="page-subtitle">Manage your profile photo and availability schedule</p>
+      </div>
 
       <div className="card mb-6">
-        <div className="flex items-start gap-4">
-          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-blue-700">
-            {doctor.user?.name?.charAt(0) || 'D'}
-          </div>
-          <div className="flex-1">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+          <AvatarUpload
+            src={doctor.user?.avatar}
+            name={doctor.user?.name}
+            size="2xl"
+            userId={doctor.user?._id}
+            type="doctor"
+            onUploaded={(url) => setDoctor({ ...doctor, user: { ...doctor.user, avatar: url } })}
+            syncAuth
+          />
+          <div className="flex-1 text-center sm:text-left">
             <h2 className="text-xl font-bold">{doctor.user?.name}</h2>
             <p className="text-gray-500">{doctor.doctorId}</p>
-            <p className="text-sm text-primary-700 mt-1">{doctor.specialization}</p>
-          </div>
-          <div className="flex items-center gap-1 text-amber-500">
-            <Star size={18} fill="currentColor" />
-            <span className="font-semibold">{doctor.rating?.toFixed(1) || '0.0'}</span>
-            <span className="text-xs text-gray-400">({doctor.totalRatings || 0})</span>
+            <p className="text-sm text-primary-700 mt-1 font-medium">{doctor.specialization}</p>
+            <div className="flex items-center justify-center sm:justify-start gap-1 text-amber-500 mt-2">
+              <Star size={18} fill="currentColor" />
+              <span className="font-semibold">{doctor.rating?.toFixed(1) || '0.0'}</span>
+              <span className="text-xs text-gray-400">({doctor.totalRatings || 0} ratings)</span>
+            </div>
           </div>
         </div>
 

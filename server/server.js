@@ -31,6 +31,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const queueRoutes = require('./routes/queueRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 connectDB();
 
@@ -81,6 +82,7 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/queue', queueRoutes);
+app.use('/api/upload', uploadRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
